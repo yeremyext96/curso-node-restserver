@@ -1,15 +1,34 @@
-const { response, request } = require('express')
+const { response, request, json } = require('express')
 const bcryptjs = require('bcryptjs');
 const Usuario = require('../models/usuario');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 
-const usuariosGet = (req, res = response) => {
-    const { nombre, correo, password, rol } = req.query;
-    res.json({
-        message: 'GET API - Controlador',
-        nombre
-    });
+const usuariosGet = async (req = request, res = response) => {
+
+    //paginacion
+    const { limite = 5, desde = 0 } = req.query;
+    const query = { estado: true };
+    //validar que reciba numeros en los params
+    if (isNaN(desde) || isNaN(limite)) {
+        return res.status(400).json({
+            message: 'los parametros de paginacion deben ser tipo numerico'
+        });
+    } else {
+
+        const [total, usuarios] = await Promise.all([
+            Usuario.countDocuments(query),
+            Usuario.find(query)
+                .skip(Number(desde))
+                .limit(Number(limite))
+        ])
+
+        res.json({
+            //resp,
+            total,
+            usuarios
+        });
+    }
 }
 
 const usuariosPost = async (req = request, res = response) => {
@@ -31,7 +50,7 @@ const usuariosPost = async (req = request, res = response) => {
     res.json({
         message: 'Usuario Registrado :)',
         usuario,
-        
+
     });
 }
 
@@ -56,9 +75,18 @@ const usuariosPut = async (req, res = response) => {
     });
 }
 
-const usuariosDelete = (req, res = response) => {
+const usuariosDelete = async (req, res = response) => {
+
+    const { id } = req.params;
+
+    //Borrar fisicamente
+    //const usuario = await Usuario.findByIdAndDelete(id);
+    
+    const usuario = await Usuario.findByIdAndUpdate(id, {estado:false});
+
     res.json({
-        message: 'DELETE API - Controlador'
+        message: 'Usuario eliminado',
+        usuario
     });
 }
 
