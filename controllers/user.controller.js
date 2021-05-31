@@ -77,6 +77,7 @@ const usuariosPut = async (req, res = response) => {
 
 const usuariosDelete = async (req, res = response) => {
 
+    //requerir el id de la url
     const { id } = req.params;
 
     //Borrar fisicamente
